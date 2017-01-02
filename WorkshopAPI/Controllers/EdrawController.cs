@@ -1,24 +1,25 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
-using System.Net;
-using System.Net.Http;
-using System.Web.Http;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Web;
 using System.IO;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
+using System.Web.Http;
 
 namespace WorkshopAPI.Controllers
 {
     [RoutePrefix("api")]
-    public class DrawController : ApiController
+    public class EdrawController : ApiController
     {
-        [Route("draw")]
+        [Route("edraw")]
         [HttpPost]
+        
         public async Task<HttpResponseMessage> PostDrawImage()
-        {          
+        {
             try
             {
                 /* Dese */
@@ -30,16 +31,21 @@ namespace WorkshopAPI.Controllers
 
                 /* Draw the rectangle where the face is */
                 Image drawedImage = Image.FromStream(originImage);
-                Pen pen = new Pen(Brushes.Tomato, 5);
+                Pen pen = new Pen(Brushes.DeepPink, 5);
+                Font drawFont = new Font("Arial", 28);
+                SolidBrush drawBrush = new SolidBrush(Color.Black);
                 var graphic = Graphics.FromImage(drawedImage);
 
-                for (int i = 0; i < mydata.ages.Count; i++)
+                for (int i = 0; i < mydata.rects.Count; i++)
                 {
                     int x = mydata.rects[i].x;
                     int y = mydata.rects[i].y;
                     int len = mydata.rects[i].len;
-
+                    
                     graphic.DrawRectangle(pen, x, y, len, len);
+                    RectangleF layoutRect = new RectangleF(x - 2, y - 50, 200, 50);
+                    graphic.FillRectangle(new SolidBrush(Color.DeepPink), layoutRect);
+                    graphic.DrawString(mydata.emoes[i], drawFont, drawBrush, layoutRect);
                 }
 
                 /* Convert image to base64 string */
@@ -67,34 +73,19 @@ namespace WorkshopAPI.Controllers
                 throw new HttpResponseException(response);
             }
         }
-    }
 
-    public class MyDataType
-    {
-        public string imageuri { get; set; }
-        public List<Rect> rects { get; set; }
-        public List<Age> ages { get; set; }
-    }
-
-    public class Rect
-    {
-        public Rect(int x, int y, int len)
+        public class MyDataType
         {
-            this.x = x;
-            this.y = y;
-            this.len = len;
+            public string imageuri { get; set; }
+            public List<Rect> rects { get; set; }
+            public List<string> emoes { get; set; }
         }
-        public int x { get; set; }
-        public int y { get; set; }
-        public int len { get; set; }
-    }
 
-    public class Age
-    {
-        public Age(double age)
+        public class Rect
         {
-            this.age = age;
-        }
-        public double age { get; set; }
+            public int x { get; set; }
+            public int y { get; set; }
+            public int len { get; set; }
+        }        
     }
 }
