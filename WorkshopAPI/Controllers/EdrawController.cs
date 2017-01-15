@@ -9,6 +9,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web.Http;
+using WorkshopAPI.Models;
 
 namespace WorkshopAPI.Controllers
 {
@@ -72,20 +73,6 @@ namespace WorkshopAPI.Controllers
                 response.Content = new StringContent(ex.ToString());
                 throw new HttpResponseException(response);
             }
-        }
-
-        public class MyDataType
-        {
-            public string imageuri { get; set; }
-            public List<Rect> rects { get; set; }
-            public List<string> emoes { get; set; }
-        }
-
-        public class Rect
-        {
-            public int x { get; set; }
-            public int y { get; set; }
-            public int len { get; set; }
-        }        
+        }                
     }
 }

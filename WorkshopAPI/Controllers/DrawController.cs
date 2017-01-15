@@ -9,6 +9,7 @@ using System.Web;
 using System.IO;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using WorkshopAPI.Models;
 
 namespace WorkshopAPI.Controllers
 {
@@ -67,34 +68,5 @@ namespace WorkshopAPI.Controllers
                 throw new HttpResponseException(response);
             }
         }
-    }
-
-    public class MyDataType
-    {
-        public string imageuri { get; set; }
-        public List<Rect> rects { get; set; }
-        public List<Age> ages { get; set; }
-    }
-
-    public class Rect
-    {
-        public Rect(int x, int y, int len)
-        {
-            this.x = x;
-            this.y = y;
-            this.len = len;
-        }
-        public int x { get; set; }
-        public int y { get; set; }
-        public int len { get; set; }
-    }
-
-    public class Age
-    {
-        public Age(double age)
-        {
-            this.age = age;
-        }
-        public double age { get; set; }
-    }
+    }    
 }
