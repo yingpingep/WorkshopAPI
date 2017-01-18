@@ -8,8 +8,7 @@ namespace WorkshopAPI.Models
     public class MyDataType
     {
         public string imageuri { get; set; }
-        public List<Rect> rects { get; set; }
-        public List<string> emoes { get; set; }
+        public List<Rect> rects { get; set; }        
         public List<Age> ages { get; set; }
     }
 

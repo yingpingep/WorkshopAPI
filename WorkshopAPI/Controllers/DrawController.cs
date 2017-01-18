@@ -19,21 +19,24 @@ namespace WorkshopAPI.Controllers
         [Route("draw")]
         [HttpPost]
         public async Task<HttpResponseMessage> PostDrawImage()
-        {          
+        {
+            /* Dese */
+            MyDataType mydata = JsonConvert.DeserializeObject<MyDataType>(await Request.Content.ReadAsStringAsync());           
+            Pen pen = new Pen(Brushes.Tomato, 5);
+            
+            HttpClient httpClient = new HttpClient();            
+
             try
             {
-                /* Dese */
-                MyDataType mydata = JsonConvert.DeserializeObject<MyDataType>(await Request.Content.ReadAsStringAsync());
-
                 /* Get image form internet */
-                WebClient wc = new WebClient();
-                var originImage = wc.OpenRead(mydata.imageuri);
+                HttpResponseMessage getMessage = await httpClient.GetAsync(mydata.imageuri);
+                string imageType = getMessage.Content.Headers.ContentType.MediaType;
+                Stream originImage = await getMessage.Content.ReadAsStreamAsync();
 
                 /* Draw the rectangle where the face is */
-                Image drawedImage = Image.FromStream(originImage);
-                Pen pen = new Pen(Brushes.Tomato, 5);
-                var graphic = Graphics.FromImage(drawedImage);
+                Image drawedImage = Image.FromStream(originImage);                
 
+                var graphic = Graphics.FromImage(drawedImage);
                 for (int i = 0; i < mydata.ages.Count; i++)
                 {
                     int x = mydata.rects[i].x;
@@ -45,7 +48,20 @@ namespace WorkshopAPI.Controllers
 
                 /* Convert image to base64 string */
                 MemoryStream ms = new MemoryStream();
-                drawedImage.Save(ms, ImageFormat.Jpeg);
+
+                if (imageType.Equals("image/jpeg"))
+                {
+                    drawedImage.Save(ms, ImageFormat.Jpeg);
+                }
+                else if (imageType.Equals("image/png"))
+                {
+                    drawedImage.Save(ms, ImageFormat.Png);
+                }
+                else
+                {
+                    throw new UnsupportedTypeException();
+                }
+                
                 byte[] bytedImage = ms.ToArray();
                 string basedImage = Convert.ToBase64String(bytedImage);
 
@@ -53,20 +69,43 @@ namespace WorkshopAPI.Controllers
                 HttpResponseMessage response = Request.CreateResponse();
                 response.Content = new StringContent(basedImage);
 
-                // Test function store image file
+                #region Test function store image file
                 //using (var imageFile = new FileStream(root + "girl.jpg", FileMode.Create))
                 //{
                 //    imageFile.Write(bytedImage, 0, bytedImage.Length);                    
                 //    imageFile.Flush();                    
                 //}
+                #endregion
+
+                return response;
+            }
+            catch (GetPictureException gpe)
+            {
+                var response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, gpe);
+                return response;
+            }
+            catch (UnsupportedMediaTypeException ust)
+            {
+                var response = Request.CreateErrorResponse(HttpStatusCode.BadRequest, ust);
                 return response;
             }
             catch (Exception ex)
             {
-                var response = Request.CreateResponse();
-                response.Content = new StringContent(ex.ToString());
-                throw new HttpResponseException(response);
+                var request = Request.CreateErrorResponse(HttpStatusCode.RequestTimeout, ex);
+                return request;
             }
         }
-    }    
+    }
+
+    public class GetPictureException : Exception
+    {
+        public GetPictureException()
+            : base("Cannot get the picture, check your url") { }
+    }
+
+    public class UnsupportedTypeException : Exception
+    {
+        public UnsupportedTypeException()
+            : base("Makesure your image type is JPEG or PNG") { }
+    }
 }
